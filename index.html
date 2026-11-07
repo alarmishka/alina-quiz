@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Тест про Алину</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;800&family=Manrope:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:'Manrope',sans-serif;color:#fff;overflow:hidden;
+ background:linear-gradient(135deg,#ff3cac,#784ba0,#2b86c5,#ff9a3c);background-size:400% 400%;animation:bg 12s ease infinite}
+@keyframes bg{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
+.blob{position:fixed;border-radius:50%;filter:blur(40px);opacity:.5;animation:float 9s ease-in-out infinite;z-index:0}
+.b1{width:220px;height:220px;background:#ffe53b;top:-60px;left:-60px}
+.b2{width:260px;height:260px;background:#00f0ff;bottom:-80px;right:-80px;animation-delay:-4s}
+.b3{width:160px;height:160px;background:#ff5e9c;top:45%;left:60%;animation-delay:-2s}
+@keyframes float{50%{transform:translate(30px,-40px) scale(1.15)}}
+.screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;
+ padding:calc(24px + env(safe-area-inset-top,0px)) 22px calc(24px + env(safe-area-inset-bottom,0px));text-align:center;z-index:2}
+.screen.on{display:flex;animation:in .6s cubic-bezier(.2,1.4,.4,1)}
+@keyframes in{from{opacity:0;transform:translateY(40px) scale(.9)}to{opacity:1;transform:none}}
+h1,h2{font-family:'Unbounded',sans-serif;font-weight:800;line-height:1.15;text-shadow:0 4px 20px rgba(0,0,0,.25)}
+h1{font-size:34px}h2{font-size:22px}
+.emoji{font-size:72px;animation:bounce 1.6s ease-in-out infinite;display:inline-block}
+@keyframes bounce{50%{transform:translateY(-14px) rotate(8deg)}}
+.sub{margin:14px 0 30px;font-size:18px;font-weight:700;line-height:1.5}
+.sub b{background:#ffe53b;color:#2b1055;padding:2px 8px;border-radius:8px}
+.btn{font-family:'Unbounded',sans-serif;font-size:18px;font-weight:800;border:0;border-radius:60px;padding:18px 44px;
+ background:#ffe53b;color:#2b1055;box-shadow:0 8px 0 #e0a800,0 14px 30px rgba(0,0,0,.3);cursor:pointer;animation:pulse 1.5s infinite}
+.btn:active{transform:translateY(6px);box-shadow:0 2px 0 #e0a800}
+@keyframes pulse{50%{transform:scale(1.06)}}
+.bar{width:100%;max-width:420px;height:10px;background:rgba(255,255,255,.3);border-radius:10px;overflow:hidden;margin-bottom:10px}
+.bar i{display:block;height:100%;width:0;background:#ffe53b;border-radius:10px;transition:width .5s}
+.cnt{font-weight:700;opacity:.9;margin-bottom:22px}
+.q{max-width:420px;margin-bottom:24px}
+.opts{width:100%;max-width:420px;display:grid;gap:12px}
+.opt{font-family:'Manrope';font-weight:700;font-size:18px;color:#2b1055;background:#fff;border:0;border-radius:18px;padding:16px;
+ box-shadow:0 5px 0 rgba(0,0,0,.18);opacity:0;animation:pop .5s forwards;cursor:pointer;transition:.2s}
+@keyframes pop{from{opacity:0;transform:translateX(-40px) scale(.9)}to{opacity:1;transform:none}}
+.opt.ok{background:#3ddc84;color:#fff;transform:scale(1.05)}
+.opt.bad{background:#ff4d6d;color:#fff;animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-12px)}75%{transform:translateX(12px)}}
+.card{background:rgba(255,255,255,.18);backdrop-filter:blur(14px);border:2px solid rgba(255,255,255,.5);
+ border-radius:28px;padding:26px 20px;max-width:440px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.card p{margin-top:14px;font-size:16px;line-height:1.5;font-weight:700}
+.card p span{display:block;font-size:12px;opacity:.8;text-transform:uppercase;letter-spacing:1px}
+.card .hl{color:#ffe53b}
+canvas{position:fixed;inset:0;pointer-events:none;z-index:9}
+</style>
+</head>
+<body>
+<div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+<canvas id="c"></canvas>
+
+<section class="screen on" id="start">
+  <div class="emoji">🎂</div>
+  <h1>Тест про&nbsp;Алину</h1>
+  <p class="sub">Прошёл — <b>???</b> 🎁<br>Не прошёл — <b>проходи заново</b> 😈</p>
+  <button class="btn" id="go">Начать</button>
+</section>
+
+<section class="screen" id="quiz">
+    <div class="cnt" id="cnt"></div>
+  <h2 class="q" id="q"></h2>
+  <div class="opts" id="opts"></div>
+</section>
+
+<section class="screen" id="fail">
+  <div class="emoji">🙈</div>
+  <h1>Не прошёл!</h1>
+  <p class="sub">Ты точно друг? Проходи заново 😜</p>
+  <button class="btn" id="retry">Заново</button>
+</section>
+
+<section class="screen" id="gift">
+  <div class="emoji" style="font-size:110px">🎁</div>
+  <h1>Тест пройден!</h1>
+  <p class="sub">Тебя ждёт сюрприз...</p>
+  <button class="btn" id="open">Открыть</button>
+</section>
+
+<section class="screen" id="win">
+  <div class="emoji">🥳</div>
+  <div class="card">
+    <h2>Вы приглашены!</h2>
+    <p><span>Когда</span><b class="hl">28 ноября в 17:00</b></p>
+    <p>на день рождения <b class="hl">Алины Корзыковой</b></p>
+    <p><span>Место встречи</span>крыльцо перед домом Алины</p>
+    <p><span>Место проведения</span>***</p>
+    <p>При себе иметь хорошее настроение и домашние тапочки 🩴✨</p>
+  </div>
+</section>
+
+<script>
+const CONFIG = {
+  questions: [
+    {q:"Как зовут мою маму?", a:"Ирина", w:["Марина","Елена","Наталья"]},
+    {q:"Какое у меня было домашнее животное?", a:"Хомяк", w:["Кошка","Собака","Попугай"]},
+    {q:"Какое моё любимое число?", a:"67", w:["13","7","42"]},
+    {q:"Когда у меня день рождения?", a:"28 ноября", w:["28 октября","18 ноября","8 декабря"]}
+  ]
+};
+const tg = window.Telegram?.WebApp;
+try{tg?.ready();tg?.expand()}catch(e){}
+const hap = t => { try{ tg?.HapticFeedback?.notificationOccurred(t) }catch(e){} };
+const $ = id => document.getElementById(id);
+const show = id => { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on')); $(id).classList.add('on'); };
+const shuffle = a => a.map(v=>[Math.random(),v]).sort((x,y)=>x[0]-y[0]).map(x=>x[1]);
+
+let i = 0, lock = false;
+function render(){
+  const Q = CONFIG.questions[i]; lock = false;
+  $('cnt').textContent = `Вопрос ${i+1} из ???`;
+  $('q').textContent = Q.q;
+  const box = $('opts'); box.innerHTML = '';
+  shuffle([Q.a,...Q.w]).forEach((t,n)=>{
+    const b = document.createElement('button');
+    b.className='opt'; b.textContent=t; b.style.animationDelay=(0.3+n*0.12)+'s';
+    b.onclick = () => answer(b, t===Q.a);
+    box.appendChild(b);
+  });
+  const q = $('q'); q.style.animation='none'; q.offsetHeight; q.style.animation='in .6s cubic-bezier(.2,1.4,.4,1)';
+}
+function answer(btn, ok){
+  if(lock) return; lock = true;
+  btn.classList.add(ok?'ok':'bad'); hap(ok?'success':'error');
+  setTimeout(()=>{
+    if(!ok){ show('fail'); return; }
+    i++;
+    if(i<CONFIG.questions.length){ render(); }
+    else { show('gift'); hap('success'); }
+  }, 900);
+}
+$('open').onclick = () => { show('win'); hap('success'); party(); };
+$('go').onclick = () => { i=0; show('quiz'); render(); };
+$('retry').onclick = () => { i=0; show('quiz'); render(); };
+
+/* confetti */
+const cv = $('c'), cx = cv.getContext('2d'); let parts=[], run=false;
+function size(){cv.width=innerWidth;cv.height=innerHeight} size(); addEventListener('resize',size);
+const COL=['#ffe53b','#ff3cac','#00f0ff','#3ddc84','#fff','#ff9a3c'];
+function burst(x,y,n){
+  for(let k=0;k<n;k++){const a=Math.random()*Math.PI*2,s=4+Math.random()*10;
+  parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-6,r:4+Math.random()*6,c:COL[k%COL.length],rot:Math.random()*6,vr:Math.random()*.4-.2,l:140+Math.random()*80});}
+}
+function party(){
+  burst(innerWidth/2,innerHeight/2,160);
+  let t=0; const iv=setInterval(()=>{burst(Math.random()*innerWidth,-10,25);if(++t>14)clearInterval(iv)},250);
+  if(!run){run=true;loop()}
+}
+function loop(){
+  cx.clearRect(0,0,cv.width,cv.height);
+  parts.forEach(p=>{p.vy+=.25;p.vx*=.99;p.x+=p.vx;p.y+=p.vy;p.rot+=p.vr;p.l--;
+    cx.save();cx.translate(p.x,p.y);cx.rotate(p.rot);cx.fillStyle=p.c;cx.fillRect(-p.r,-p.r/2,p.r*2,p.r);cx.restore()});
+  parts=parts.filter(p=>p.l>0&&p.y<cv.height+20);
+  if(parts.length||$('win').classList.contains('on')) requestAnimationFrame(loop); else run=false;
+}
+</script>
+</body>
+</html>
